@@ -1,52 +1,22 @@
-下面内容**整体即为最终 Markdown 正文**，已按你的要求**统一润色与重构**，特点如下：
-
-* 不使用 ``` 符号
-* 代码全部采用**缩进代码块**
-* 所有链接均使用**超链接文字**，不裸露 URL
-* 明确：
-
-  * TrajXfer 是 **ShortDF 的进阶扩展方案**
-  * 强调“**多步效果 → 少步迁移**”，不强调 20→2 的对比
-  * 保留 **ShortDF 引用 + TrajXfer 自身 citation（不暴露论文标题）**
-  * “百亿参数开源”表述**对外行友好、对内行不歧义**（不会让人误以为 FLUX 是你们训练的）
-
-可直接 **一键复制粘贴到 README.md**。
-
----
 
 # TrajXfer
 
+## 🧭 Description
 TrajXfer is a **trajectory-based acceleration method** for diffusion and flow-based generative models.
-It can be viewed as an **advanced extension of Shortest Path Diffusion (ShortDF)**, focusing on transferring optimized sampling trajectories to enable efficient few-step inference.
+It can be viewed as an **advanced version of Shortest Path Diffusion ([ShortDF](https://github.com/UnicomAI/ShortDF))**, focusing on transferring optimized sampling trajectories to enable efficient few-step inference.
 
-TrajXfer aims to **transfer the visual fidelity of long sampling trajectories into extreme few-step generation** via a lightweight, trajectory-aware LoRA, without modifying the semantic capacity of the base model.
-
-The full methodology, theoretical analysis, and extensive experiments are described in a research work that is **currently under submission**.
-This repository provides an **open-source demonstration based on FLUX.1-dev**, illustrating how TrajXfer can be applied in practice.
-
----
-
-## What This Repository Is About
-
-* This repository demonstrates **TrajXfer** using **FLUX.1-dev** as an example backend
-* TrajXfer focuses on **trajectory-level acceleration**, rather than semantic finetuning
-* The goal is to **migrate the effect of multi-step sampling into significantly fewer steps**
-* Only lightweight **LoRA weights** are released for modularity and ease of integration
-
----
-
-## Visual Results (Placeholder)
+TrajXfer aims to **transfer the visual fidelity of long sampling trajectories into extreme few-step generation** via a lightweight, trajectory-aware LoRA, without modifying the semantic capacity of the base model. The full methodology, theoretical analysis, and extensive experiments are described in a research work that is **currently under submission**.
 
 Below is a qualitative illustration of **trajectory transfer**, showing how the visual quality of long-trajectory sampling can be preserved under few-step inference using TrajXfer.
 
-* Left: FLUX.1-dev with standard multi-step sampling
-* Right: FLUX.1-dev with TrajXfer-enabled few-step sampling
+* Baseline: FLUX.1-dev with standard multi-step sampling
+* **TrajXfer(Ours)**: FLUX.1-dev with TrajXfer-enabled few-step sampling
+<img width="2055" height="535" alt="image" src="https://github.com/user-attachments/assets/003a607b-d626-4ac1-92b1-cff3930c14fe" />
 
-[ Placeholder for visual comparison figure ]
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 TrajXfer can be directly used with the **x-flux pipeline**.
 The training and implementation are based on x-flux, so using TrajXfer together with x-flux is recommended.
@@ -60,14 +30,42 @@ from src.flux.xflux_pipeline import XFluxPipeline
 device = 'cuda:0'
 xflux_pipeline = XFluxPipeline('flux-dev', device, False)
 
-lora_name = 'trajxfer'
-local_path = '/home/jovyan/research/liuxiang/code/x-flux/outputs/weights/shortdf_lora_x0_rank24_123456789/lora.safetensors'
+prompts=["ultra-photorealistic, natural sweet young woman, early 20s, candid gentle smile, soft and clear skin with visible pores and natural light freckles, subtle natural makeup, silky slightly wavy medium-length hair, fresh and lively expression, captured by a Leica SL2-S with a Summilux-M 50mm f/1.4 lens, natural outdoor sunlight (golden hour), delicate shallow depth of field (bokeh background), cinematic warm tones, slight wind blowing the hair, extremely detailed facial texture, true-to-life color grading, authentic human proportions, no anime, no illustration, no cgi, no 3d, no painting, no digital art, pure real-world photography style."]
 
-xflux_pipeline.set_lora(
-    local_path=local_path,
-    name=lora_name,
-    lora_weight=1
+base_result = xflux_pipeline(
+                prompt=prompts,
+                width=1024,
+                height=1024,
+                guidance=4,
+                num_steps=30,
+                seed=123456789,
+                true_gs=3.5,
+                neg_prompt="",
+                timestep_to_start_cfg=5,
+            )
+
+
+
+lora_name = 'trajxfer'
+local_path = 'trajxfer_flux1.0-dev_lora.safetensors'
+
+#10 steps
+xflux_pipeline.set_lora(local_path=local_path, name=lora_name, lora_weight=0.8)
+
+trajxfer_result = xflux_pipeline(
+    prompt=prompts,
+    width=1024,
+    height=1024,
+    guidance=4,
+    num_steps=10,
+    seed=123456789,
+    true_gs=3.5,
+    neg_prompt="",
+    timestep_to_start_cfg=5,
 )
+
+#2 steps
+xflux_pipeline.set_lora(local_path=local_path, name=lora_name, lora_weight=1)
 
 trajxfer_result = xflux_pipeline(
     prompt=prompts,
@@ -82,7 +80,7 @@ trajxfer_result = xflux_pipeline(
 )
 ```
 
-This example demonstrates **few-step inference** while maintaining the visual characteristics typically associated with much longer sampling trajectories.
+This example realizes few-step inference with visual characteristics matching long sampling trajectories.
 
 **Notes:**
 
@@ -91,48 +89,27 @@ This example demonstrates **few-step inference** while maintaining the visual ch
 
 ---
 
-## Open-Source Model Weights
+## 📦 Weights
 
 TrajXfer is designed for **large-scale generative foundation models**, whose parameter counts typically reach **hundreds of billions**.
 
 To use TrajXfer:
 
-1. Download the FLUX.1-dev base model
-   [FLUX.1-dev on Hugging Face]
+1. Download the [FLUX.1-dev](https://huggingface.co/black-forest-labs/FLUX.1-dev) base model
 
-2. Download the TrajXfer LoRA weights
-   [TrajXfer LoRA Weights]
+2. Download the [TrajXfer LoRA weights](https://drive.google.com/file/d/1nmtqgK_abJo-KFpAlY57nsT2iglDadO4/view?usp=drive_link)
+---
 
-3. Load the LoRA into the base model using x-flux tooling
+## 🌟 Acknowledgements
 
-The released LoRA contains **orders of magnitude fewer parameters** than the base model and modifies **sampling trajectory geometry only**, without altering the underlying semantic representation.
+This implementation is built on top of the [**x-flux**](https://github.com/XLabs-AI/x-flux) project.
+We sincerely thank the **XLabs-AI** team for their open-source contributions to the FLUX ecosystem.
 
 ---
 
-## Acknowledgements
 
-This implementation is built on top of the **x-flux** project.
-We sincerely thank the **XLabs-AI / x-flux** team for their open-source contributions to the FLUX ecosystem.
 
-* x-flux project: [x-flux GitHub Repository]
-
----
-
-## Related Work
-
-TrajXfer builds upon recent advances in **trajectory optimization for generative models**, particularly:
-
-**Shortest Path Diffusion (ShortDF)**
-Chen et al., *Optimizing for the Shortest Path in Denoising Diffusion Models*
-
-ShortDF formulates diffusion sampling as a shortest-path problem and highlights the importance of **trajectory straightening** for efficient generation.
-TrajXfer extends this perspective by enabling **explicit trajectory transfer** through **few-shot, LoRA-based geometric adaptation**.
-
-* ShortDF project: [ShortDF GitHub Repository]
-
----
-
-## Citation
+## 📖 Citation
 
 If you find this work useful, please consider citing the following works.
 
