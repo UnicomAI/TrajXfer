@@ -1,5 +1,6 @@
 from src.flux.xflux_pipeline import XFluxPipeline
-
+from PIL import Image
+import os
 device = 'cuda:0'
 xflux_pipeline = XFluxPipeline('flux-dev', device, False)
 
@@ -17,7 +18,7 @@ base_result = xflux_pipeline(
                 timestep_to_start_cfg=5,
             )
 
-
+base_result.save("./sample_images/base_result.png")
 
 
 
@@ -40,10 +41,12 @@ trajxfer_result = xflux_pipeline(
     timestep_to_start_cfg=5,
 )
 
+trajxfer_result.save("./sample_images/trajxfer_result_10-step.png")
+
 #2 steps
 xflux_pipeline.set_lora(local_path=local_path, name=lora_name, lora_weight=1)
 
-trajxfer_result = xflux_pipeline(
+trajxfer_result_2 = xflux_pipeline(
     prompt=prompts,
     width=1024,
     height=1024,
@@ -54,3 +57,5 @@ trajxfer_result = xflux_pipeline(
     neg_prompt="",
     timestep_to_start_cfg=5,
 )
+
+trajxfer_result.save("./sample_images/trajxfer_result_2-step.png")
