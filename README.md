@@ -2,8 +2,8 @@
 # TrajXfer
 
 ## 🧭 Description
-TrajXfer is a **trajectory-based acceleration method** for diffusion and flow-based generative models.
-It can be viewed as an **advanced version of Shortest Path Diffusion ([ShortDF](https://github.com/UnicomAI/ShortDF))**, focusing on transferring optimized sampling trajectories to enable efficient few-step inference.
+
+TrajXfer is a **trajectory-based acceleration method** for diffusion and flow-based generative models, advancing beyond **Shortest Path Diffusion ([ShortDF](https://github.com/UnicomAI/ShortDF))** by shifting from path-wise optimization to semantic-invariant trajectory modeling, enabling efficient few-step inference with minimal data.
 
 TrajXfer aims to **transfer the visual fidelity of long sampling trajectories into extreme few-step generation** via a lightweight, trajectory-aware LoRA, without modifying the semantic capacity of the base model. The full methodology, theoretical analysis, and extensive experiments are described in a research work that is **currently under submission**.
 
